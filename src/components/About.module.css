@@ -1,0 +1,109 @@
+.about { background: var(--surface); }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: start;
+}
+
+.para {
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+}
+.para strong { color: var(--white); font-weight: 600; }
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  filter: grayscale(20%);
+  transition: filter 0.3s ease;
+}
+
+.frame:hover .photo {
+  filter: grayscale(0%);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.stat {
+  border: 1px solid var(--border);
+  padding: 1.4rem;
+  position: relative;
+  overflow: hidden;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 100%;
+  background: var(--orange);
+}
+
+.statNum {
+  font-family: var(--mono);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.statLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Frame */
+.frameCol { }
+.frame {
+  aspect-ratio: 3 / 4;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 320px;
+}
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(249,115,22,0.07) 100%);
+}
+.initials {
+  font-size: 6.5rem;
+  font-weight: 800;
+  color: var(--surface3);
+  letter-spacing: -0.04em;
+  user-select: none;
+}
+.deco {
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 55px; height: 55px;
+  border-top: 1px solid var(--orange);
+  border-left: 1px solid var(--orange);
+  transform: rotate(180deg);
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; gap: 3rem; }
+  .frameCol { order: -1; }
+  .frame { max-width: 100%; aspect-ratio: 16 / 9; }
+  .initials { font-size: 5rem; }
+}
