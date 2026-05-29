@@ -87,6 +87,6 @@ export const translations = {
     'c.errEmail':'Geçerli bir e-posta girin.',
     // footer
     'foot.copy': 'Sıfırdan tasarlandı ve geliştirildi.',
-    'foot.city': 'İstanbul\'da özenle yapıldı.',
+    'foot.city': 'Ankara\'da özenle yapıldı.',
   },
 }
