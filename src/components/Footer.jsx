@@ -11,6 +11,7 @@ export default function Footer() {
       <p>
         © {year} <em>{personal.name}</em>. {t('foot.copy')}
       </p>
+      <p className={styles.city}>{t('foot.city')}</p>
     </footer>
   )
 }
