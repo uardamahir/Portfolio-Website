@@ -1,9 +1,3 @@
-// ─────────────────────────────────────────────────
-//  UI STRING TRANSLATIONS
-//  Only UI chrome (nav, labels, buttons, messages)
-//  Content text lives in src/data/content.js
-// ─────────────────────────────────────────────────
-
 export const translations = {
   en: {
     // nav
@@ -48,7 +42,7 @@ export const translations = {
     'c.errEmail':'Please enter a valid email.',
     // footer
     'foot.copy': 'Designed & built from scratch.',
-    'foot.city': 'Made with precision in Istanbul.',
+    'foot.city': 'Made with precision in Ankara.',
   },
   tr: {
     // nav

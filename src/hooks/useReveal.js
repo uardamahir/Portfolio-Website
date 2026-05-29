@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react'
 
-/**
- * Attaches an IntersectionObserver to a container ref and adds
- * the 'vis' class to every child with className 'reveal' when
- * they enter the viewport.
- */
 export function useReveal() {
   const ref = useRef(null)
 
