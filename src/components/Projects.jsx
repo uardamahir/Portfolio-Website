@@ -133,7 +133,7 @@ export default function Projects() {
         <div className={styles.header}>
           <h2 className={`section-title reveal d1 ${styles.title}`}>{t('t.projects')}</h2>
           
-            href={personal.github}
+            <a href={personal.github}
             target="_blank"
             rel="noreferrer"
             className={`reveal d2 ${styles.ghLink}`}
