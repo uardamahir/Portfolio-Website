@@ -1,73 +1,104 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../hooks/useLang.jsx'
-import { personal, fallbackProjects } from '../data/content.js'
+import { personal } from '../data/content.js'
 import { useReveal } from '../hooks/useReveal.js'
 import styles from './Projects.module.css'
 
-const LANG_COLORS = {
-  JavaScript: '#f7df1e',
-  TypeScript:  '#3178c6',
-  Python:      '#3776ab',
-  Go:          '#00add8',
-  Rust:        '#dea584',
-  CSS:         '#563d7c',
-  HTML:        '#e34c26',
-  Java:        '#b07219',
-  Shell:       '#89e051',
+// ── İçerik = tek doğruluk kaynağı. GitHub yalnızca yıldız/link "zenginleştirir". ──
+const CONTENT = {
+  'password-manager-WEBextension': {
+    title: 'Aegis — Sıfır-Bağımlılıklı Parola Yöneticisi',
+    desc: 'Kimlik bilgilerini tamamen istemci tarafında şifreleyip yöneten bir Manifest V3 tarayıcı eklentisi. Saldırı yüzeyini en aza indirmek için bilinçli olarak sıfır üçüncü-taraf kütüphaneyle geliştirildi; tüm kriptografi tarayıcının yerel Web Crypto API’si üzerinden uygulandı.',
+    tech: ['JavaScript', 'Web Crypto API', 'AES-GCM', 'PBKDF2', 'Manifest V3'],
+  },
+  'document-assistant-RAG': {
+    title: 'Themis — RAG Belge Asistanı',
+    desc: 'Kullanıcının kendi PDF’lerinden soruları yanıtlayan, her cevabın dayandığı kaynak pasajları gösteren ve belgeler yetersiz kaldığında yanıt vermeyi reddeden bir asistan. Hattı uçtan uca kurdum: sınır-duyarlı parçalama → embedding → vektör benzerlik araması → akışlı üretim; modele gidilmeden önce devreye giren bir benzerlik-eşiği kapısıyla.',
+    tech: ['Next.js', 'TypeScript', 'PostgreSQL + pgvector', 'Ollama'],
+  },
+  'DoctorAppointment-BookingSystem': {
+    title: 'Hastane Randevu Sistemi',
+    desc: 'Hasta ve doktor yönetimi, randevu planlama ve bildirim sistemi içeren full-stack web uygulaması.',
+    tech: ['MERN', 'JWT Auth', 'Cloudinary', 'Vercel'],
+  },
+  'FRAKTIA': {
+    title: 'FRAKTIA — Coğrafi Konum Oyunu',
+    desc: 'MERN altyapısıyla geliştirilen dedektif tarzı bir coğrafi konum oyunu. Geliştirme aşamasında.',
+    tech: ['MongoDB', 'Express', 'React', 'Node.js'],
+  },
+  'Portfolio-Website': {
+    title: 'Portfolyo Sitesi',
+    desc: 'Projeleri GitHub API üzerinden canlı çeken kişisel portfolyo sitesi.',
+    tech: ['React', 'Vite', 'CSS Modules', 'EmailJS', 'GitHub API'],
+  },
+  'algorithms-n-datastructes': {
+    title: 'Algoritmalar, Veri Yapıları & Çeşitli Projeler',
+    desc: 'Öğrendiğim teknolojileri pekiştirmek için geliştirdiğim projeler ve çözdüğüm problemler. Stack, queue, linked list, tree, graph; backtracking, dinamik programlama ve öz-yineleme üzerine uygulamalı çalışmalar. build-your-own-x ve crewAI gibi açık kaynak repolarını inceleyerek yazılım mimarisi ve çok-ajanlı YZ üzerine araştırmalar.',
+    tech: ['JavaScript', 'Algorithms', 'Data Structures'],
+  },
 }
 
-// ── Repos to display, in this exact order ──
+// ── Gösterim sırası (bu dizinin sırası = karttaki sıra) ──
 const PINNED = [
-  'FRAKTIA',
-  'DoctorAppointment-BookingSystem',
+  'password-manager-WEBextension',
   'document-assistant-RAG',
-  'algorithms-n-datastructes',
+  'DoctorAppointment-BookingSystem',
+  'FRAKTIA',
   'Portfolio-Website',
-  'basic-projects',
+  'algorithms-n-datastructes',
 ]
 
-// ── Repos to always exclude ──
 const EXCLUDED = ['uardamahir']
 
+// CONTENT'i temel alır; varsa GitHub verisiyle (yıldız, gerçek link) zenginleştirir.
+function buildProjects(byName = {}) {
+  return PINNED.map((name) => {
+    const gh = byName[name] || {}
+    const c = CONTENT[name] || {}
+    return {
+      name,
+      title: c.title || gh.name || name,
+      desc: c.desc || gh.description || '',
+      tech: c.tech || (gh.language ? [gh.language] : []),
+      stars: typeof gh.stargazers_count === 'number' ? gh.stargazers_count : null,
+      repoUrl: gh.html_url || `https://github.com/${personal.githubUser}/${name}`,
+      homepage: gh.homepage || null,
+    }
+  })
+}
+
 function RepoCard({ repo, t }) {
-  const color = LANG_COLORS[repo.language] || '#666'
   return (
     <div className={`${styles.card} pcard`}>
       <div className={styles.cardTop}>
         <div className={styles.icon}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
           </svg>
         </div>
         <div className={styles.links}>
           {repo.homepage && (
             <a href={repo.homepage} target="_blank" rel="noreferrer">{t('proj.live')}</a>
           )}
-          <a href={repo.html_url} target="_blank" rel="noreferrer">{t('proj.repo')}</a>
+          <a href={repo.repoUrl} target="_blank" rel="noreferrer">{t('proj.repo')}</a>
         </div>
       </div>
-      <div className={styles.name}>{repo.name}</div>
-      <div className={styles.desc}>{repo.description || t('proj.empty')}</div>
-      <div className={styles.meta}>
-        {repo.language && (
-          <div className={styles.lang}>
-            <div className={styles.dot} style={{ background: color }} />
-            {repo.language}
-          </div>
-        )}
-        <span>★ {repo.stargazers_count}</span>
-      </div>
-    </div>
-  )
-}
+      <div className={styles.name}>{repo.title}</div>
+      <div className={styles.desc}>{repo.desc || t('proj.empty')}</div>
 
-function SkeletonCard() {
-  return (
-    <div className={styles.skeleton}>
-      <div className={styles.skLine} style={{ height: 12, width: '40%' }} />
-      <div className={styles.skLine} style={{ height: 18, width: '70%', marginTop: 12 }} />
-      <div className={styles.skLine} style={{ height: 10, width: '90%', marginTop: 8 }} />
-      <div className={styles.skLine} style={{ height: 10, width: '75%' }} />
+      {repo.tech.length > 0 && (
+        <div className={styles.tech}>
+          {repo.tech.map((item) => (
+            <span key={item} className={styles.chip}>{item}</span>
+          ))}
+        </div>
+      )}
+
+      {repo.stars != null && (
+        <div className={styles.meta}>
+          <span>★ {repo.stars}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -75,7 +106,8 @@ function SkeletonCard() {
 export default function Projects() {
   const { t } = useLang()
   const ref = useReveal()
-  const [repos, setRepos] = useState(null)
+  // CONTENT'ten anında dolu başlar → iskelet/boş kart yok, rate-limit olsa da görünür.
+  const [repos, setRepos] = useState(() => buildProjects({}))
 
   useEffect(() => {
     fetch(
@@ -83,23 +115,15 @@ export default function Projects() {
     )
       .then((r) => r.json())
       .then((data) => {
-        if (!Array.isArray(data) || data.length === 0) {
-          setRepos(fallbackProjects)
-          return
-        }
-        // Filter to pinned repos and sort by PINNED order
-        const map = Object.fromEntries(
+        if (!Array.isArray(data)) return
+        const byName = Object.fromEntries(
           data
             .filter((r) => !EXCLUDED.includes(r.name))
             .map((r) => [r.name, r])
         )
-        const filtered = PINNED
-          .filter((name) => map[name])
-          .map((name) => map[name])
-
-        setRepos(filtered.length > 0 ? filtered : fallbackProjects)
+        setRepos(buildProjects(byName))
       })
-      .catch(() => setRepos(fallbackProjects))
+      .catch(() => {}) // sessizce CONTENT verisinde kal
   }, [])
 
   return (
@@ -108,7 +132,7 @@ export default function Projects() {
         <p className="section-label reveal">{t('s.projects')}</p>
         <div className={styles.header}>
           <h2 className={`section-title reveal d1 ${styles.title}`}>{t('t.projects')}</h2>
-          <a
+          
             href={personal.github}
             target="_blank"
             rel="noreferrer"
@@ -119,9 +143,9 @@ export default function Projects() {
         </div>
 
         <div className={styles.grid}>
-          {repos === null
-            ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            : repos.map((repo) => <RepoCard key={repo.name} repo={repo} t={t} />)}
+          {repos.map((repo) => (
+            <RepoCard key={repo.name} repo={repo} t={t} />
+          ))}
         </div>
       </div>
     </section>
