@@ -20,7 +20,7 @@ const LANG_COLORS = {
 const PINNED = [
   'FRAKTIA',
   'DoctorAppointment-BookingSystem',
-  'Full-Stack-Netflix-Clone',
+  'document-assistant-RAG',
   'algorithms-n-datastructes',
   'Portfolio-Website',
   'basic-projects',
