@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+  <rect width="52" height="52" fill="#f97316"/>
+  <text x="26" y="34" text-anchor="middle"
+        font-family="'Space Mono', ui-monospace, monospace"
+        font-size="19" font-weight="700" fill="#0a0a0a">AÜ</text>
+  <line x1="11" y1="43" x2="41" y2="43" stroke="#0a0a0a" stroke-width="1" opacity=".45"/>
+</svg>
