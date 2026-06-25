@@ -1,73 +1,51 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../hooks/useLang.jsx'
 import { personal } from '../data/content.js'
+import { projectContent } from '../data/projects.js'
 import { useReveal } from '../hooks/useReveal.js'
 import styles from './Projects.module.css'
 
-// ── İçerik = tek doğruluk kaynağı. GitHub yalnızca yıldız/link "zenginleştirir". ──
-const CONTENT = {
-  'password-manager-WEBextension': {
-    title: 'Aegis — Sıfır-Bağımlılıklı Parola Yöneticisi',
-    desc: 'Kimlik bilgilerini tamamen istemci tarafında şifreleyip yöneten bir Manifest V3 tarayıcı eklentisi. Saldırı yüzeyini en aza indirmek için bilinçli olarak sıfır üçüncü-taraf kütüphaneyle geliştirildi; tüm kriptografi tarayıcının yerel Web Crypto API’si üzerinden uygulandı.',
-    tech: ['JavaScript', 'Web Crypto API', 'AES-GCM', 'PBKDF2', 'Manifest V3'],
-  },
-  'document-assistant-RAG': {
-    title: 'Themis — RAG Belge Asistanı',
-    desc: 'Kullanıcının kendi PDF’lerinden soruları yanıtlayan, her cevabın dayandığı kaynak pasajları gösteren ve belgeler yetersiz kaldığında yanıt vermeyi reddeden bir asistan. Hattı uçtan uca kurdum: sınır-duyarlı parçalama → embedding → vektör benzerlik araması → akışlı üretim; modele gidilmeden önce devreye giren bir benzerlik-eşiği kapısıyla.',
-    tech: ['Next.js', 'TypeScript', 'PostgreSQL + pgvector', 'Ollama'],
-  },
-  'DoctorAppointment-BookingSystem': {
-    title: 'Hastane Randevu Sistemi',
-    desc: 'Hasta ve doktor yönetimi, randevu planlama ve bildirim sistemi içeren full-stack web uygulaması.',
-    tech: ['MERN', 'JWT Auth', 'Cloudinary', 'Vercel'],
-  },
-  'FRAKTIA': {
-    title: 'FRAKTIA — Coğrafi Konum Oyunu',
-    desc: 'MERN altyapısıyla geliştirilen dedektif tarzı bir coğrafi konum oyunu. Geliştirme aşamasında.',
-    tech: ['MongoDB', 'Express', 'React', 'Node.js'],
-  },
-  'Portfolio-Website': {
-    title: 'Portfolyo Sitesi',
-    desc: 'Projeleri GitHub API üzerinden canlı çeken kişisel portfolyo sitesi.',
-    tech: ['React', 'Vite', 'CSS Modules', 'EmailJS', 'GitHub API'],
-  },
-  'algorithms-n-datastructes': {
-    title: 'Algoritmalar, Veri Yapıları & Çeşitli Projeler',
-    desc: 'Öğrendiğim teknolojileri pekiştirmek için geliştirdiğim projeler ve çözdüğüm problemler. Stack, queue, linked list, tree, graph; backtracking, dinamik programlama ve öz-yineleme üzerine uygulamalı çalışmalar. build-your-own-x ve crewAI gibi açık kaynak repolarını inceleyerek yazılım mimarisi ve çok-ajanlı YZ üzerine araştırmalar.',
-    tech: ['JavaScript', 'Algorithms', 'Data Structures'],
-  },
+// ── Çift dilli alanı çöz: {en,tr} ise dile göre seç, düz string ise olduğu gibi ──
+const pick = (v, lang) =>
+  v && typeof v === 'object' && !Array.isArray(v)
+    ? v[lang] ?? v.en ?? ''
+    : v ?? ''
+
+// API çökerse / lokalde /api yoksa gösterilecek sıra = içerik dosyasının sırası.
+const FALLBACK_ORDER = Object.keys(projectContent)
+
+// GitHub'dan gelen pin'i, varsa küratörlü metinle zenginleştirir.
+function fromPinned(gh) {
+  const c = projectContent[gh.name] || {}
+  return {
+    name: gh.name,
+    title: c.title || gh.name,
+    desc: c.desc || gh.description || '',
+    tech: c.tech || [gh.language, ...(gh.topics || [])].filter(Boolean),
+    stars: typeof gh.stars === 'number' ? gh.stars : null,
+    repoUrl: gh.url || `https://github.com/${personal.githubUser}/${gh.name}`,
+    homepage: gh.homepage || null,
+  }
 }
 
-// ── Gösterim sırası (bu dizinin sırası = karttaki sıra) ──
-const PINNED = [
-  'password-manager-WEBextension',
-  'document-assistant-RAG',
-  'DoctorAppointment-BookingSystem',
-  'FRAKTIA',
-  'Portfolio-Website',
-  'algorithms-n-datastructes',
-]
-
-const EXCLUDED = ['uardamahir']
-
-// CONTENT'i temel alır; varsa GitHub verisiyle (yıldız, gerçek link) zenginleştirir.
-function buildProjects(byName = {}) {
-  return PINNED.map((name) => {
-    const gh = byName[name] || {}
-    const c = CONTENT[name] || {}
-    return {
-      name,
-      title: c.title || gh.name || name,
-      desc: c.desc || gh.description || '',
-      tech: c.tech || (gh.language ? [gh.language] : []),
-      stars: typeof gh.stargazers_count === 'number' ? gh.stargazers_count : null,
-      repoUrl: gh.html_url || `https://github.com/${personal.githubUser}/${name}`,
-      homepage: gh.homepage || null,
-    }
-  })
+// Sadece yerel içerikten kart üretir (pin verisi yokken).
+function fromContent(name) {
+  const c = projectContent[name]
+  return {
+    name,
+    title: c.title,
+    desc: c.desc,
+    tech: c.tech || [],
+    stars: null,
+    repoUrl: `https://github.com/${personal.githubUser}/${name}`,
+    homepage: null,
+  }
 }
 
-function RepoCard({ repo, t }) {
+function RepoCard({ repo, t, lang }) {
+  const title = pick(repo.title, lang)
+  const desc = pick(repo.desc, lang)
+
   return (
     <div className={`${styles.card} pcard`}>
       <div className={styles.cardTop}>
@@ -83,8 +61,9 @@ function RepoCard({ repo, t }) {
           <a href={repo.repoUrl} target="_blank" rel="noreferrer">{t('proj.repo')}</a>
         </div>
       </div>
-      <div className={styles.name}>{repo.title}</div>
-      <div className={styles.desc}>{repo.desc || t('proj.empty')}</div>
+
+      <div className={styles.name}>{title}</div>
+      <div className={styles.desc}>{desc || t('proj.empty')}</div>
 
       {repo.tech.length > 0 && (
         <div className={styles.tech}>
@@ -104,26 +83,20 @@ function RepoCard({ repo, t }) {
 }
 
 export default function Projects() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const ref = useReveal()
-  // CONTENT'ten anında dolu başlar → iskelet/boş kart yok, rate-limit olsa da görünür.
-  const [repos, setRepos] = useState(() => buildProjects({}))
+
+  // Anında dolu başlar → iskelet/boş kart yok, /api erişilemese de görünür.
+  const [repos, setRepos] = useState(() => FALLBACK_ORDER.map(fromContent))
 
   useEffect(() => {
-    fetch(
-      `https://api.github.com/users/${personal.githubUser}/repos?per_page=100&type=public`
-    )
+    fetch('/api/pinned')
       .then((r) => r.json())
-      .then((data) => {
-        if (!Array.isArray(data)) return
-        const byName = Object.fromEntries(
-          data
-            .filter((r) => !EXCLUDED.includes(r.name))
-            .map((r) => [r.name, r])
-        )
-        setRepos(buildProjects(byName))
+      .then(({ pinned }) => {
+        if (!Array.isArray(pinned) || pinned.length === 0) return // fallback'te kal
+        setRepos(pinned.map(fromPinned))
       })
-      .catch(() => {}) // sessizce CONTENT verisinde kal
+      .catch(() => {}) // sessizce yerel içerikte kal
   }, [])
 
   return (
@@ -132,8 +105,9 @@ export default function Projects() {
         <p className="section-label reveal">{t('s.projects')}</p>
         <div className={styles.header}>
           <h2 className={`section-title reveal d1 ${styles.title}`}>{t('t.projects')}</h2>
-          
-            <a href={personal.github}
+
+          <a
+            href={personal.github}
             target="_blank"
             rel="noreferrer"
             className={`reveal d2 ${styles.ghLink}`}
@@ -144,7 +118,7 @@ export default function Projects() {
 
         <div className={styles.grid}>
           {repos.map((repo) => (
-            <RepoCard key={repo.name} repo={repo} t={t} />
+            <RepoCard key={repo.name} repo={repo} t={t} lang={lang} />
           ))}
         </div>
       </div>
